@@ -99,5 +99,8 @@
 - `Lexical Analyzer` is a self contained unit that communicates with rest of compiler through subroutines and global variable.
 
 > `NOTE  1 : `  `Parser` call the anlayer every time it needs a new token. It returns token with associated lexemes.
+<p align="center">
+         <image src = "https://github.com/teche74/CompilerCrafting/assets/129526047/c8fecb09-b005-49b1-87ce-d1f700f60295">
+</p>
 
 > `NOTE  2 : ` Implementation of Analyzer is hidden from parser, this means you can modify or replace it without affecting rest of compiler. 
