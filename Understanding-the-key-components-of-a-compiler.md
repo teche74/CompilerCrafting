@@ -226,5 +226,75 @@ Consider a grammar with the following production rule:
 
 - **_Problem occurs when expression tries to expand and gets expression again which leads to an infinte loop._** To eliminate this we are using null production.
 <p align="center">
-  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/d5ea4c43-a4a1-4a41-837e-266ceed8a06c">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/3872f655-30ab-41ea-9019-8de4e3737872">
 </p>
+
+## SYNTAX DAIGRAM
+
+- It helps to represent entire syntatic structure of a parsed sentence.
+- It is useful in writting recursive - decent compilers because they can directly translate to flow charts.
+- _How to translate into syntax daigram_
+  - Mulitple production get merged into single daigram.
+  - ε production is represented by uninterrepted line that doesn't go through box.
+  
+<p align="center">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/2512ecb3-30fc-476c-9974-b9350990b555">
+</p>
+      
+## A RECURSIVE DECENT EXPRESSION COMPILER
+
+- **_Lets try to build a smaller compiler using the expression grammer_**.
+
+`GOAL : Take Simple arithematic expression as input and generate code that evaluate those expression at run time`.
+<p align="center">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/50a01d91-f34b-4b7c-a103-87db36379f67">
+</p>
+
+### LEXICAL ANALYZER
+- First step is to defining a token set.
+- Number and identifiers are exceptions, otherwise all lexemes are single character.
+- `NOTE : `
+  - `token : ` indiviseble unit disambiguited by lexemes.
+  - `lexemes : ` Comprises of input string.
+- `NUM_OR_ID` token is used for both nubers and identifiers. It is made up of series of contiguous characters. `example :  ( '0' - '9' ) , ( 'a' - 'z' ) , ( 'A' - 'Z' ) `.
+
+**_ABOUT LEX.H FILE**
+
+- Tokens themselves defined with macros at top of lex.h file.
+- Lexical Analyzer translates a seicolon into `SEMI` token.
+- Series of digit into a `NUM_OR_ID` token and so on..
+- Three external variables at bottom of lex.h are used by lexical analyzer to pass information of parser.
+  - `yytext : points at current lexeme.`
+  - `yylang : number of characters in lexemes.`
+  - `yylineno : current input line number.`
+- `Lexical Analyzer starts itself. It uses a simple, buffered, input system, which gets character a line at a time from standard input.`
+<br>
+**_Isolating tokens, one at a time, from the line._**
+<br>
+
+- Another input line is fetched when entire line is exhausted.
+
+### ADVANTAGE OF USING BUFFER SYSTEM ?? 🤓😲
+
+- Main advantage of using buffer system for input :
+  - `Speed : ` Computers like to read data in large chunks because `larger the chunk higher the throughput`. It is noticible only when size of buffer > size of disk cluster.
+  - `lookahead and pushback feature : ` It is easier to move back and predict next when using buffer.
+
+**LOOKAHEAD and PUSHBACK ??**
+- Sometimes lexical analyzer often have to know what newxt input character without reading it. It is done through `lookhead`.
+- Sometimes analyzer had to move back as it gets too far, then we use `pushback`.
+
+**_These two operations are easy to perform in biffers against characters. How lets understand ??_**
+-------------------------------------------------------------------------------------------------------------------------------
+#### UNDERTANDING CONCEPT OF LOOKAHEAD AND PUSHBACK
+
+Imagine you are reading a story, and you want to predict next word without reading it. `This is lookhead`
+
+Sometimes, you might accidently read a bit too far, then you need to "unread" or "go-back". `This is pushback`
+
+**_Now think of doing this withone letter at a time, trying to predic next letter is very difficult. But if you have a whole word or sentence in from=nt of yo, it's easier to guess what comes next.If you read too far you can come back quickly. This is the reason buffer system is more preffered._**
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+
+
