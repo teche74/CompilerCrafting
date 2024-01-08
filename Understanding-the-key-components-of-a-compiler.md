@@ -104,3 +104,127 @@
 </p>
 
 > `NOTE  2 : ` Implementation of Analyzer is hidden from parser, this means you can modify or replace it without affecting rest of compiler. 
+
+
+## PARSERS
+
+- `Commpilers` are used for translation of high level language to machine level language like `8086` and `assembler`. In this process `parser` helps compiler to decompose a sentence into its component parts.
+-  The decomposition of sentence is represented in tree form rather than sentence daigram `where sentence is entire program`.
+-  Sentence daigram have the property to show their syntatic relationship betwee part of sentences itself. This representation is often called  `Syntax Daigram/Syntax Tree`.
+
+- We can expand Syntatic Tree to visualize both grammatical and syntatic structure.
+
+
+    **_A PARSER IS A GROUP OF SUBROUTINES USED FOR CONVERSION OF INPUT STREAM _TOKENS_ INTO A PARSED TREE_**
+
+- `example : ` A * B + C * D
+<p align="center">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/b4caac0b-07a3-4ee1-9ade-639b0678d2fa">
+</p> 
+
+## CODE GENREATOR
+
+- Last part of `Compiler` which is somewhat misleading as it is represented as a seperate component from parser, while actually most compilers generate code as the parser progress.
+- Code was generated  by sam subroutines which perform parsing.
+    - `CASE 1 : ` Either `Parser` creates the parse tree for entire input file which further traversed by distinct code genreators.
+    - `CASE 2 : ` Parse generates an Intermediate language of input file from which syntax tree can reconstructed using optimal pass.
+
+- `Code Generator` translates input file into an intermediate langauge rather than machine code directly. Its then translated to machine code by `back end`.
+
+#### WHY USING INTERMEDIATE LAGAUAGE CONVERSION ? 💭💭🧐
+
+| **Advantages**                                       | **Disadvantages**                                         |
+|------------------------------------------------------|-----------------------------------------------------------|
+| It provides optimizations like `simple constant folding`. | Compiling times may double due to the intermediate conversion. |
+| Simple constant folding evaluates constant expressions at compile time. |                                                           |
+|                                                       |                                                           |
+
+
+## GRAMMER AND PARSE TREE
+
+- Generally `Formal Grammer` method is used to describe a programming lnaguage.
+- `Formal Grammer` most often represented in modified `BNF (Backus Normal Form)`. Strict BNF representation starts with set of tokens ` ( called terminal symbols) ` and set fo symbols ` ( called non-terminal symbol ) `.
+-  One operator is supported which is ` ::= operator ` which means **_is defined as_** or **_goes to_**.
+<p align="center">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/1e02290e-4518-4c9c-8daa-d58b8432f173">
+</p> 
+- Each rule of this type is called `Production`. we can also termed it as ` ( **Left side of Production** ) ::= ( **Right side of Production** ) `.
+
+## HOW REAL GRAMMER WORKS
+
+- `Grammer` works in such a way that it continue with further defination until all the terminal symbol are accounted.
+<p align="center">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/47495bcf-8a2d-4c67-8da5-85e684762da7">
+</p> 
+
+- Sometimes mulitple chaoices in Rule production is shown by ` OR operator  ( | ) `.
+<p align="center">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/250821bf-38cf-4049-b12b-10066c6f13ed">
+</p> 
+
+- `NOTE : ` Make `Grammer` as much flexible as you can.
+<p align="center">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/b468cb02-1628-4523-aeb7-70b1ec5da7db">
+</p> 
+
+- Optionality in Rules is shown by using  `epsilon production ( ε ) `
+<p align="center">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/6bb7bdd0-97e0-491c-b1f7-19a13a0b0383">
+</p> 
+
+- **PARSER determines whcihc production to apply by examining the next input symbol.**  
+  - Suppose that we had defined a grammer below that recognize a limited set of English sentences below.
+<p align="center">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/9890b74e-82b0-42c6-86d5-b6d4fd8ff905">
+</p> 
+
+  - Lets take an example : ` JANE SEES SPOT RUN `. and check how input series is recognized.
+    - Steps ivolved in series recognition are :
+      - There must be a series of replacement.
+      - Start out with topmost symbol `( goal symbol )`.
+      - Replace that symbol with one in right hand side.
+      - Replace all leftmost non-terminals with its right-hand side.    
+**_STRUCTURE OF PARSE TREE_**
+<p align="center">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/f05c0066-928b-45c0-a32f-fad843242980">
+</p> 
+
+## AN EXPRESSION GRAMMER
+- Some grammer recognizes a list of one or more statements.
+- Statements are made up of series of semicolon delimeter expression.
+  - It means multiple expression as semicolon as its delimeter.
+  - It either comprises of number seperated by non terminal symbols like (+, *) etc.
+  - `NOTE : ` `Grammer` is Recursive in nature. Thsi means resursion is used to parse grammer. Even a well recursion makes it possible for a finite grammer to recognize an infinite number of sentences.
+
+-------------------------------------------------------------------------------------------------------------------------------
+- Grammer is set of rules that defines structure of langauge.
+- Recursion is used to analyze and parse the grammer.
+- Grammer is designed to be intutive reflects how expression are put together.  
+-------------------------------------------------------------------------------------------------------------------------------
+
+
+## LEFT RECURSION CHALLENGE
+
+### Understanding Left Recursion
+
+Left recursion is a challenging aspect in grammar and parsing, particularly in the context of designing parsers for programming languages. Left recursion occurs when a non-terminal in a grammar produces a sentential form that starts with itself. This can lead to ambiguity and difficulties in parsing.
+
+Consider a production rule of the form  `A -> Aα | B ` where `A` is a non-terminal, and `α` and `β` are sequences of terminals and/or non-terminals. This type of production introduces left recursion.
+
+### The Challenge
+
+Left recursion poses a challenge for recursive descent parsers, as they may fall into an infinite loop when trying to expand such recursive rules. To handle left recursion, it's essential to rewrite the grammar in a way that eliminates left recursion.
+
+### Demonstrative Example
+
+Let's take a simple example to illustrate the left recursion challenge:
+
+Consider a grammar with the following production rule:
+<p align="center">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/d5ea4c43-a4a1-4a41-837e-266ceed8a06c">
+</p> 
+
+- **_Problem occurs when expression tries to expand and gets expression again which leads to an infinte loop._** To eliminate this we are using null production.
+<p align="center">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/d5ea4c43-a4a1-4a41-837e-266ceed8a06c">
+</p>
