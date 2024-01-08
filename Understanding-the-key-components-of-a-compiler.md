@@ -224,11 +224,13 @@ Consider a grammar with the following production rule:
   <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/d5ea4c43-a4a1-4a41-837e-266ceed8a06c">
 </p> 
 
-- **_Problem occurs when expression tries to expand and gets expression again which leads to an infinte loop._** To eliminate this we are using null production.
+
+**_Problem occurs when expression tries to expand and gets expression again which leads to an infinte loop_** To eliminate this we are using null production.
 <p align="center">
   <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/3872f655-30ab-41ea-9019-8de4e3737872">
 </p>
 
+<br>
 ## SYNTAX DAIGRAM
 
 - It helps to represent entire syntatic structure of a parsed sentence.
@@ -240,7 +242,8 @@ Consider a grammar with the following production rule:
 <p align="center">
   <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/2512ecb3-30fc-476c-9974-b9350990b555">
 </p>
-      
+
+<br>
 ## A RECURSIVE DECENT EXPRESSION COMPILER
 
 - **_Lets try to build a smaller compiler using the expression grammer_**.
@@ -258,7 +261,7 @@ Consider a grammar with the following production rule:
   - `lexemes : ` Comprises of input string.
 - `NUM_OR_ID` token is used for both nubers and identifiers. It is made up of series of contiguous characters. `example :  ( '0' - '9' ) , ( 'a' - 'z' ) , ( 'A' - 'Z' ) `.
 
-**_ABOUT LEX.H FILE**
+**_ABOUT LEX.H FILE_**
 
 - Tokens themselves defined with macros at top of lex.h file.
 - Lexical Analyzer translates a seicolon into `SEMI` token.
@@ -269,7 +272,9 @@ Consider a grammar with the following production rule:
   - `yylineno : current input line number.`
 - `Lexical Analyzer starts itself. It uses a simple, buffered, input system, which gets character a line at a time from standard input.`
 <br>
-**_Isolating tokens, one at a time, from the line._**
+
+**_Isolating tokens, one at a time, from the line_**
+
 <br>
 
 - Another input line is fetched when entire line is exhausted.
