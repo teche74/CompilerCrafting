@@ -338,105 +338,117 @@ extern int yylineno;               /*     Input line number.                */
 
 
 ```c
-#include "lex.h"                /*  It contains all macros and declaration    */
-#include <stdio.h>              /*  It includes standar input output library  */
-#include <ctype.h>              /*  It includes standard library for character classification and manipulation function */
+#include "lex.h"   /*  It contains all macros and declaration    */
+#include <stdio.h> /*  It includes standar input output library  */
+#include <ctype.h> /*  It includes standard library for character classification and manipulation function */
 
-char  *yytext = "";             /*     Lexeme (not '\0' terminated)      */
-int    yyleng = 0;              /*     Lexeme length.                    */
-int    yylineno = 0;            /*     Input line number.                */
-
+char *yytext = ""; /*     Lexeme (not '\0' terminated)      */
+int yyleng = 0;    /*     Lexeme length.                    */
+int yylineno = 0;  /*     Input line number.                */
 
 lex()
 {
     /*
-        * Declares a static array of type char with size 128.
-        * Declares a character pointer.
-    */
+     * Declares a static array of type char with size 128.
+     * Declares a character pointer.
+     */
     static char input_buffer[128];
-    char  * current = NULL;
+    char *current = NULL;
     /*
         ! Why static ?
             * Static keyword helps in static storage duration which means memory allocated to array remains allocated throughout the entire execution.
-            
+
             * Static keyword restricts the scope, this mean input_buffer is only accesed and visible within file.
-            
+
             * It helps input_buffer to initialized only once with all elements set to zero.
-            
-            * It is also useful to maintain or remember current state of input_buffer beteween calls to lex function.    
+
+            * It is also useful to maintain or remember current state of input_buffer beteween calls to lex function.
 
         ! Purpose of current ?
             * It is used to keep track character arrray.
     */
 
-    current = yytext + yyleng;      /*  Skip  current  lexeme  */
+    current = yytext + yyleng; /*  Skip  current  lexeme  */
 
     /* Getting the next one */
-    while(1){
-        while( !*current ){
+    while (1)
+    {
+        while (!*current)
+        {
             /*
                 1 > Get new lines.
                 2 > Skip leading spaces on line, until a nonblank line is found.
             */
 
-            current = input_buffer;         /*   Set current pointer to beginning of input_buffer            */
-            
-            if( !gets( input_buffer ) )     /*              If End of File is encountered                    */
-            {   
-                *current = '/0';            /*  It sets end last lexeme character of input buffer to  '\0'   */
-                
-                return EOI;                 /* Return EOI to signify that there is no more tooken to process */
+            current = input_buffer; /*   Set current pointer to beginning of input_buffer            */
+
+            if (!gets(input_buffer)) /*              If End of File is encountered                    */
+            {
+                *current = '/0'; /*  It sets end last lexeme character of input buffer to  '\0'   */
+
+                return EOI; /* Return EOI to signify that there is no more tooken to process */
             }
 
-            ++yylineno;     /* Increment line number */
-
+            ++yylineno; /* Increment line number */
 
             /*  Skip all leading spaces*/
-            while( isspace( *current ) ){
+            while (isspace(*current))
+            {
                 current++;
             }
+        }
 
-            /*  Iterate over characters until  a null character encountered */
-            for( ;*current;++current){
-                /*  Get next Token */
-                yytext = current;            /*  yytext represent the beginning of the lexeme */ 
-                yyleng=1;                    /*  Set length of lexeme to 1                    */ 
+        /*  Iterate over characters until  a null character encountered */
+        for (; *current; ++current)
+        {
+            /*  Get next Token */
+            yytext = current; /*  yytext represent the beginning of the lexeme */
+            yyleng = 1;       /*  Set length of lexeme to 1                    */
 
-                /*  Switch to get token against lexeme encountered  */
-                switch( *current ){
+            /*  Switch to get token against lexeme encountered  */
+            switch (*current)
+            {
 
-                    /*
-                        * If a specific character is encountered ( ;, +, *, (, ) ), the corresponding token is returned (SEMI, PLUS, TIMES, LP, RP).
-                    */
-                    case EOF : return EOF;
-                    case ';' : return SEMI;
-                    case '+' : return PLUS;
-                    case '*' : return TIMES;
-                    case '(' : return LP;
-                    case ')' : return RP;
+            /*
+             * If a specific character is encountered ( ;, +, *, (, ) ), the corresponding token is returned (SEMI, PLUS, TIMES, LP, RP).
+             */
+            case EOF:
+                return EOF;
+            case ';':
+                return SEMI;
+            case '+':
+                return PLUS;
+            case '*':
+                return TIMES;
+            case '(':
+                return LP;
+            case ')':
+                return RP;
 
-                    /*
-                        * If the character is a whitespace character (\n, \t, ' '), it is ignored.
-                    */
-                    case '\n' : 
-                    case '\t' :
-                    case ' '  : break;
+            /*
+             * If the character is a whitespace character (\n, \t, ' '), it is ignored.
+             */
+            case '\n':
+            case '\t':
+            case ' ':
+                break;
 
-                    default : 
-                        /*  Checks  for alphanumeric character  */
-                        if( !isalnum( *current ) )
-                            fprintf(stderr, "Ignoring illegal input <%c> \n", *current);    /* If not alphanumeric return error statement */
-                        else{
-                            /* If it is alphanumeric iterate until a non - alphanumeric encountered */
-                            while( isalnum( *current ) ){
-                                ++current;
-                            }
+            default:
+                /*  Checks  for alphanumeric character  */
+                if (!isalnum(*current))
+                    fprintf(stderr, "Ignoring illegal input <%c> \n", *current); /* If not alphanumeric return error statement */
+                else
+                {
+                    /* If it is alphanumeric iterate until a non - alphanumeric encountered */
+                    while (isalnum(*current))
+                    {
+                        ++current;
+                    }
 
-                            yyleng = current - yytext;              /*               Calculating Length of Lexeme                             */
-                            return NUM_OR_ID;                       /*     Token is returned to signify that a numeric or identifier is found */
-                        }
-                        break;
+                    yyleng = current - yytext; /*               Calculating Length of Lexeme                             */
+                    return NUM_OR_ID;          /*     Token is returned to signify that a numeric or identifier is found */
                 }
+                break;
             }
         }
     }
