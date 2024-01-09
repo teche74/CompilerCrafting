@@ -454,3 +454,134 @@ lex()
     }
 }
 ```
+
+### A PROBLEM WE GET ?🧐
+
+- Just think what if our expression work be like `a++ + b`. Our lexical anlayzer will term it as `a +  +`. Due to this case our lex will not compute it in right way.
+- To solve this , we create two subroutines : `match` and `advance` where match acts like `lookahead` and advance works as `pushback`.
+
+#### **_IMPLEMENTING LOOKAHEAD AND ADVANCE_**
+
+- Lookahead variable holds lookahead token.
+- It's gets initialized by -1.
+- We make it static to maintain its value between calls and limit its scope withing the file.
+
+```c
+static int Lookahead = -1; 
+
+int match(int token){
+      /*   This is  a foolproof mechanism as it comparing with itself */
+  if(Lookahead == -1){
+      Lookahead = lex();
+  }
+
+return token  == Lookahead;
+}
+
+void advance(){
+      /*  Its just assign new values to lookahead. */ 
+  Lookahead = lex();
+}
+```
+
+- So we have solve the problem....😀, Our new code looks as :
+
+```c
+#include "lex.h"
+#include <stdio.h>
+#include <ctype.h>
+
+char *yytext = "";
+int yyleng = 0;
+int yylineno = 0;
+
+static char input_buffer[128];
+static char *current = input_buffer;
+
+
+int lex() {
+    while (1) {
+        while (!*current) {
+            current = input_buffer;
+
+            if (!gets(input_buffer)) {
+                *current = '\0';
+                return EOI;
+            }
+
+            ++yylineno;
+
+            while (isspace(*current)) {
+                ++current;
+            }
+        }
+
+        for (; *current; ++current) {
+            yytext = current;
+            yyleng = 1;
+
+            switch (*current) {
+                case EOF: return EOF;
+                case ';': return SEMI;
+                case '+': return PLUS;
+                case '*': return TIMES;
+                case '(': return LP;
+                case ')': return RP;
+                case '\n':
+                case '\t':
+                case ' ': break;
+                default:
+                    if (!isalnum(*current))
+                        fprintf(stderr, "Ignoring illegal input <%c> \n", *current);
+                    else {
+                        while (isalnum(*current)) {
+                            ++current;
+                        }
+                        yyleng = current - yytext;
+                        return NUM_OR_ID;
+                    }
+                    break;
+            }
+        }
+    }
+}
+
+
+int match(int token) {
+    return (lookahead() == token);
+}
+
+void advance() {
+    current += yyleng; // Move the current pointer by the length of the lexeme
+}
+
+
+
+int main() {
+    int token;
+
+    do {
+        token = lex();
+    } while (token != EOI);
+
+    return 0;
+}
+```
+
+**PARSER GENERATES NO CODE, IT JUST PARSE INPUT**
+
+- After these implementations what if i say that actaully it not works like this .... Wow ,wait it will help you further.
+
+- Each subroutine compared to left hand side in original grammer that bears same name. Similarly struture of each subroutine exactly matches the grammer.
+
+_Are you confused let me tell you that no your works get more easier ,lets see how.._
+
+<p align="center">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/23dd1892-8fdf-4794-9967-7786adb821b0">
+</p>
+
+
+### **IMPLEMENTATION OF PLAIN BASIC PARSER**
+
+```c
+```
