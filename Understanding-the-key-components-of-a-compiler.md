@@ -584,4 +584,181 @@ _Are you confused let me tell you that no your works get more easier ,lets see h
 ### **IMPLEMENTATION OF PLAIN BASIC PARSER**
 
 ```c
+#include "lex.h"   /*  It contains all macros and declaration    */
+#include <stdio.h> /*  It includes standar input output library  */
+
+
+void statements() {
+    /* statements -> expression SEMI | expression SEMI statements */
+    expression();
+
+    if (match(SEMI)) {
+        advance();
+    } else {
+        fprintf(stderr, "%d: Inserting missing semicolon\n", yylineno);
+    }
+
+    if (!match(EOI)) {
+        statements();
+    }
+}
+
+void expression() {
+    /* expression -> term expression' */
+    term();
+    _expression();
+}
+
+void _expression() {
+    /* expression' -> PLUS term expression' | epsilon */
+    if (match(PLUS)) {
+        advance();
+        term();
+        _expression();
+    }
+}
+
+void term() {
+    /* term -> factor term' */
+    factor();
+    _term();
+}
+
+void _term() {
+    /* term' -> TIMES factor term' | epsilon */
+    if (match(TIMES)) {
+        advance();
+        factor();
+        _term();
+    }
+}
+
+void factor() {
+    /* factor -> NUM OR ID | LP expression RP */
+    if (match(NUM_OR_ID)) {
+        advance();
+    } else if (match(LP)) {
+        advance();
+        expression();
+
+        if (match(RP)) {
+            advance();
+        } else {
+            fprintf(stderr, "%d: Mismatched parenthesis\n", yylineno);
+        }
+    } else {
+        fprintf(stderr, "%d: Number or identifier expected\n", yylineno);
+    }
+}
+
+int main() {
+    statements();
+    return 0;
+}
+
+```
+
+**__Now You will understand that why there is  left recursion condition in decent parser.__**
+
+`example  : expression -> expression + term`
+- In this expression keep calling itsef again and again and it will never stop until it gets out of stack.
+ 
+```c
+expression(){
+  expression();
+  if(match(PLUS)) advance();
+  else error();
+  term();
+}
+```
+
+- If we analysze the syntax daigram :
+<p align="center">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/49814735-1f56-4d74-88ed-37bbf2ef47d1">
+</p>
+
+- The replacements we can done :
+  - Replacing right recursion with loops.
+  - merging together of same production.
+ 
+### **_IMPLEMENTING IMPROVED PARSER_**  
+```c
+#include <stdio.h>
+#include "lex.h"
+
+void factor(void);
+void term(void);
+void expression(void);
+
+statements()
+{
+    /* statements -> expression SEMI 1 expression SEMI statements */
+
+    while (!match(EOI))
+    {
+        expression();
+
+        if (match(SEMI))
+        {
+            advance();
+        }
+        else
+        {
+            fprintf(stderr, "%d: Inserting missing semicolon\n", yylineno);
+        }
+    }
+}
+
+void expression()
+{
+    /*
+     *   expression -> term expression'
+     *   expression' -> PLUS term expression' | espilon
+     */
+    if (!legal_lookahead(NUM_OR_ID, LP, 0)){
+        return;
+    }
+
+    term();
+    while( match(PLUS) ){
+        advance();
+        term();
+    }
+}
+
+void term(){
+    if ( !legal_lookahead(NUM_OR_ID, LP, 0) ){
+        return;
+    }
+
+    factor();
+    while( match(TIMES) ){
+        advance();
+        factor();
+    }
+}
+
+void factor(){
+    if ( !legal_lookahead(NUM_OR_ID, LP, 0) ){
+        return;
+    }
+
+    if( match(NUM_OR_ID) ){
+        advance();
+    }
+
+    else if( match (LP) ){
+        advance();
+        expression();
+        if( match(RP) ){
+            advance();
+        }
+        else{
+            fprintf( stderr, "%d: Mismatched parenthesis\n", yylineno ) ; 
+        }
+    }
+    else{
+        fprintf( stderr, "%d: Number or identifier expected\n", yylineno ) ;
+    }
+}
 ```
