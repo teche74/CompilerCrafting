@@ -762,3 +762,241 @@ void factor(){
     }
 }
 ```
+
+-  Here next introduced a little error recovery by adding code to each subroutine that examines the current lookahead token before doing anything else. It's an error if that token cannot legitimately occur in the input. For example, expressions all have to start with either a NUM _OR_ ID or an LP. If the lookahead character is a PLUS at the top of expression ( ) , then something's wrong. This set of legitimate leading tokens is called a FIRST set, and every nonterminal symbol has it own FIRST set.
+  
+#### **_Improved.c for error recovery_**
+
+```c
+#include <stdarg.h>
+
+// Maximum expected tokens.
+#define MAXFIRST 16
+
+// Define SYNC as SEMI for synchronization purposes.
+#define SYNC SEMI;
+
+// check for legal lookahead in the input stream.
+int legal_lookahead(int first_arg) {
+    // Variable argument list and other necessary variables
+    va_list args;
+    int tok;
+    int lookaheads[MAXFIRST], *p = lookaheads, *current;
+    int error_printed = 0;
+    int rval = 0;
+
+    // processing variable arguments
+    va_start(args, first_arg);
+
+    // Check whether first argument is present
+    if (!first_arg) {
+        // If end of file expected, return true if it matches
+        if (match(EOI)) {
+            rval = 1;
+        }
+    } else {
+        // Initialize the list of expected tokens with the first argument
+        *p++ = first_arg;
+
+        // Add other expected tokens to the list
+        while ((tok = va_arg(args, int)) && p < &lookaheads[MAXFIRST]) {
+            *++p = tok;
+        }
+
+        // Perform error recovery by discarding input symbols until a valid token is found
+        while (!match(SYNC)) {
+            // Iterate through the list of expected tokens
+            for (current = lookaheads; current < p; ++current) {
+                // If a match is found, signal successful recovery and exit
+                if (match(*current)) {
+                    rval = 1;
+                    goto exit;
+                }
+            }
+
+            // If no match is found, print a syntax error message (only if not already printed)
+            if (!error_printed) {
+                fprintf(stderr, "Line %d: Syntax error\n", yy1ineno);
+                error_printed = 1;
+            }
+
+            // Discard the current input symbol and move to the next
+            advance();
+        }
+    }
+
+// Exit label for error recovery
+exit:
+    // Clean up variable argument list
+    va_end(args);
+
+    // Return the result of error detection and recovery
+    return rval;
+}
+```
+
+
+## CODE GENERATOR
+
+- The `parser` is used to recognize legal input sentence ( if they do not show any error ).
+- To build a Compiler, Now aour next step is to add  code generation to the bare-bones recognizer.
+- For any given input, the compiler generates raw operation using temporary variable. But actual compiler uses registers or run time stack for temporaries.
+-  The expression is evaluated operator by operator, with each temporary holding the result of evaluating the current subexpression.
+-  We can look at temporary variable assignment using syntax Tree. `example : 1 + 2 * 3 + 4`
+
+<p align="center">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/e64aa5ea-3716-425f-ad75-31a8bd275065">
+</p>
+
+**__Problem1_**
+- Our First Task is to code a mechanism that is used for allocating temporaries and ins usch a way they can be reused when they are no longer needed in current subexpression.
+- A mechanism that is suggested was using a stack containing name of temporary variables .
+  - When a new name is needed , `newname()` pops out one from stack.
+  - when the temporary is no longer needed, `freename()` pushes it back in stack.
+```c
+    /*   Temporary-Variable Allocation Routines  */
+
+char * Names[] = { "tO", "tl", "t2", "t3", "t4", "t5", "t6", "t7" };
+char * Namep = Names;
+
+char * newname(){
+  if( Namep >=&Names[ sizeof(Names)/sizeof(*Names) ] ){
+    fprintf( stderr, "%d: Expression too complex\n", yylineno );
+    exit( 1 );
+  }
+  return ( *Namep++);
+}
+
+freename(char *s){
+  if( Namep > Names){
+    *--Namep = s;
+  }
+  else{
+    fprintf(stderr, "%d: (Internal error) Name stack underflow\n", yylineno);
+  }
+} 
+```
+<p align="center">
+  <image src="https://github.com/teche74/CompilerCrafting/assets/129526047/d10f29de-a5a2-4914-84bf-ebc1b6cc5830">
+</p>
+
+ **_Problem2_**
+ - We had to determine the name of the temporary that holds the partially-evaluated expression at any given moment so that we can pass information between the subroutines in the normal way, using arguments and return
+values.
+
+- To return values, we have two methods :
+  - `Parser` using return values exclusively.
+  - `Parser` using arguments exclusively.   
+
+
+**_return value method implementation_**
+```c
+#include <stdio.h>
+#include "lex.h"
+
+// Function prototypes for the parser
+char *factor(void);
+char *term(void);
+char *expr(void);
+
+// External functions from lex.c
+extern char *newname(void);
+extern void freename(char *name);
+
+// Function to handle a sequence of statements
+void statements() {
+    /*
+    statements -> expression SEMI expression SEMI statements
+    */
+
+    char *tempvar;
+
+    // Loop until the end of input
+    while (!match(EOI)) {
+        // Process an expression
+        tempvar = expr();
+
+        // Check for a semicolon and advance if present, otherwise print an error
+        if (match(SEMI)) {
+            advance();
+        } else {
+            fprintf(stderr, "%d: Inserting missing semicolon\n", yylineno);
+        }
+
+        // Free the temporary variable name
+        freename(tempvar);
+    }
+}
+
+// Function to handle an expression
+char *expr() {
+    /*
+    expression -> term expression'
+    expression' -> PLUS term expression' | epsilon
+    */
+
+    char *tempvar, *tempvar2;
+
+    // Process the first term
+    tempvar = term();
+
+    // Process additional terms with PLUS operators
+    while (match(PLUS)) {
+        advance();
+        tempvar2 = term();
+        printf(" %s += %s\n", tempvar, tempvar2);
+        freename(tempvar2);
+    }
+
+    // Return the result of the expression
+    return tempvar;
+}
+
+// Function to handle a term
+char *term() {
+    char *tempvar, *tempvar2;
+
+    // Process the first factor
+    tempvar = factor();
+
+    // Process additional factors with TIMES operators
+    while (match(TIMES)) {
+        advance();
+        tempvar2 = factor();
+        printf("%s *= %s\n", tempvar, tempvar2);
+        freename(tempvar2);
+    }
+
+    // Return the result of the term
+    return tempvar;
+}
+
+// Function to handle a factor
+char *factor() {
+    char *tempvar;
+
+    // Check if the current token is a number or identifier
+    if (match(NUM_OR_ID)) {
+        // Print the assignment statement for the variable
+        printf(" %s = %0.*s\n", tempvar = newname(), yyleng, yytext);
+        advance();
+    } else if (match(LP)) {
+        // If the current token is '(', process the expression within the parentheses
+        advance();
+        tempvar = expr();
+
+        // Check for a matching ')' and advance if present, otherwise print an error
+        if (match(RP)) {
+            advance();
+        } else {
+            fprintf(stderr, "%d: Mismatched parenthesis\n", yylineno);
+        }
+    } else {
+        // Print an error if the token is not a number or identifier
+        fprintf(stderr, "%d: Number or identifier expected\n", yylineno);
+    }
+
+    // Return the result of the factor
+    return tempvar;
+}
+```
