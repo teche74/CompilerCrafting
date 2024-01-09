@@ -302,4 +302,27 @@ Sometimes, you might accidently read a bit too far, then you need to "unread" or
 -------------------------------------------------------------------------------------------------------------------------------
 
 
+## _CREATING LEX.H FILE_
 
+- **_Lex.h_ file contain token defination and extern statements**
+
+```c
+#define EOI              0          /*         end of input                 */
+#define SEMI             1          /*             ;                        */
+#define PLUS             2          /*             +                        */
+#define TIMES            3          /*             *                        */
+#define LP               4          /*             (                        */
+#define RP               5          /*             )                        */
+#define NUM_OR_ID        6          /*   decimal number or identifier       */
+
+        /*   in lex.c    */
+extern char *yytext;               /*     Lexeme (not '\0' terminated)      */
+extern int yyleng;                 /*     Lexeme length.                    */
+extern int yylineno;               /*     Input line number.                */
+```
+
+## _IMPLEMENTATION OF LEX.C_
+
+- Implementation of `lexical analysis` is done .
+- Steps of implemenattion as follow:
+  -   
