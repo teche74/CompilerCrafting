@@ -61,5 +61,59 @@
 
 **ISSUE2**
 -  Other issue is with pushback or lookahead. To distinguish between token and keyword `lexical analyzer` must have to lookahead several characters. If identified then must pushback the extra characters to input.
+
 `example : if then then then = else ; else else = then`
 
+- Here our `lexical analyzer` face difficulty in differentiating between else keyword from else identifier. It is done by looking at forward character. It means that we can say that a word must be an identifier if it is followed by an equal length.
+
+`example : declare(args1,args2,...., argsn)`
+- This time our `lexical analyzer` cannot distinguish keyword from identifier until right paranthesis get read. Here we need push back. another example : `differ in max() or max`.
+
+<br>
+
+### LET'S UNDERSTAND HOW PUSHBACK IS NECESSARY EVEN IN RECOGNIZING SINGLE TOKEN
+
+**_Lets suppose there are 3 tokens : `xxyy , xx and y`. if we give analyzer `xxy` as input. It should return xx token followed by y. To distinguish between tokens, it reads atleast 4 character and then push back two y's back into input stream._**
+
+- Another choice is to use `UNIX Lex` for this, but `LEX` not make any assumption anout structure of lexeme which makes it worst choice.
+
+### HOW `LEX` WORKS
+
+- It creates a layer around `getc()` using stack to get more pushbacks, then it get next next input from either stack or input stream. Here we cannot use normal buffer system like `ungetc()` as it only gives a single character pushback.
+
+## CODE FOR USING STACK FOR MULTIPLE CHARACTER PUSHBACK
+
+```c
+#include<stdio.h>
+#define SIZE 128     /* Maximum number of pushback characters */
+
+              /*         About Variables
+
+                *    Pbackbuff -> name of stack.
+
+                *    Pbackp    -> stack pointer.
+
+                *    NOTE ->  Stack grows down.
+                      *  push ->  *--Pbackp =c.
+                      *  pop  ->  c = *Pbackp++.
+                *   get() ->  evaluates next input character, either by popping or getc().
+                *   unget(c)  -> pushes c back (return -1 for unsuccesful operation and c for sucessful operation ).
+              */
+
+int Pbackbuff[ SIZE ];
+int *Pbackp = &Pbackbuff[ SIZE ];
+
+#define get( stream ) (Pbackp < &Pbackbuff[SIZE] ? *pbackp++ : getc(stream) )
+#define unget( c ) (Pbackp <= Pbackbuff  ? -1  : *--Pbackp = (c) )
+
+void ungets(char * start , int n){
+  //Push back last n characters by traversing backward through string.
+  char * p = start + strlen( start ); // get end of string.
+
+  while(--p && --n >= 0 ){
+      if( unget(*p) == -1){
+          fprintf(stderr,"pushback stack overflow \n");
+      }
+  } 
+}
+```
