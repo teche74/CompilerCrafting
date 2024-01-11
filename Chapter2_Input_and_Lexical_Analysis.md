@@ -170,12 +170,80 @@ void ungets(char * start , int n){
 <p align ="center">
   <image src ="https://github.com/teche74/CompilerCrafting/assets/129526047/abfb0643-32ac-428f-aadf-78233832093f">
     
-    <br>
-    
   **pMark : beginning of previous lexeme**
+  
   **sMark : beginning of current lexeme**
+  
   **eMark : end of current lexeme**
 </p>
 
+- If `lexical analyzer` find longer lexeme than current one, it moves eMark to current input location.
+- If it founds that it read too far in input, it can push back all extra characters by setting Next back to eMArk. `NEXT = eMark`
+- `MAXLOOK :` number of lookahead characters that are supported.
+- `DANGER :` marker that tells the input routine when next pointer is getting too close to the end of buffer.
+**_NOTE :When next crosses danger point, a buffer flush is triggered. Due to which all character between pMark and last valid characterhas been shifted to far left of buffer. Now input routine fills the reaminder empty portion of buffer from disk by reading aas many `MAXLEX`sized chunks._**
+<p align ="center">
+  <image src ="https://github.com/teche74/CompilerCrafting/assets/129526047/2d53209c-3a6f-4391-aeea-1312d0afb50d">
+</p>
 
+#### ADVANTAGES OF THE SINGLE INPUT BUFER AND POINTERS APPROACH 
+- Advantages of using thsi appproachas follow : 
+  - Lack of copying.
+  - Push back can be done by `NEXT = eMark` rather than series of push and pop.
+  - Disk reads are done in block size lead to eliminate one extra stage of copying.
+
+## IMPLEMENTATION OF INPUT SYSTEM
+
+- This file contain all macros and Data structures
+```c
+#include<stdio.h>
+#include<stdlib.h>
+#include<fnctl.h>
+#include<tools/debuh.h>
+
+#include<tools/l.h>
+#include<string.h>
+
+#ifdef MSDOS
+#   define COPY(d,s,a) memmove(d,s,a)
+#else
+#   define COPY(d,s,a) memcpy(d,s,a)
+#endif
+
+#define STDIN 0
+
+#define MAXLOOK 16
+#define MAXLEX 1024
+
+#define BUFSIZE  ( (MAXLEX * 3) + (2 * MAXLOOK) )
+
+#define DANGER (end_buf - MAXLOOK)
+
+#define END (&Start_buf[BUFSIZE])
+
+#define NO_MORE_CHARS() (Eof_read && Next >= End_buf )
+
+typedef unsigned char uchar;
+
+PRIVATE uchar Start_buf[BUFSIZE];
+PRIVATE uchar *EndBuf = END;
+PRIVATE uchar *Next = END; 
+PRIVATE uchar *sMark  = END;
+PRIVATE uchar *eMark = END;
+PRIVATE uchar *pMark = END;
+PRIVATE int  pLineno = 0;
+PRIVATE int  pLenght = 0;
+
+PRIVATE int  Inf_file = STDIN;
+PRIVATE int  Lineno = 1;
+PRIVATE int  Mline = 1;
+PRIVATE int  Termchar = 0;
+PRIVATE int  Eof_read = 0;
+
+PRIVATE int open(), close(), read();
+
+PRIVATE int ( *Openp )() = open;
+PRIVATE int ( *Closep )() = close;
+PRIVATE int ( *Readp)() = read;
+```
 
