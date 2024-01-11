@@ -247,3 +247,33 @@ PRIVATE int ( *Closep )() = close;
 PRIVATE int ( *Readp)() = read;
 ```
 
+## `INTITALIZATION ROUTINES CODE`
+```c
+void ii_io( int (*open_funct)() , int * (close_funct)(), int * (read_funct)() ){
+  Openp = open_funct;
+  Closep = close_funct;
+  Readp = read_funct;
+}
+
+int ii_newfile(char * name ){
+  int fd;
+  MS( if( strcmp(name, "/dev/tty") == 0) )
+  MS( name =  "CON" )
+
+  if( (fd = !name ? STDIN : (*Openp) (name, O_RDONLY|O_BINARY)) != -1){
+      if( Inp_file != STDIN ){
+          (*Closep)( Inp_file );
+      }
+      Inp_file = fd;
+      Eof_read = 0;
+
+      Next = END;
+      sMark = END;
+      eMark = END;
+      End_buf = END;
+      Lineno = 1;
+      Mline = 1;
+  }
+  return fd;
+}
+```
