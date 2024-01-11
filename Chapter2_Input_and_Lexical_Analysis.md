@@ -117,3 +117,65 @@ void ungets(char * start , int n){
   } 
 }
 ```
+
+## EXAMPLE INPUT SYSTEM
+
+- Let's understand input system used by `LEX-generated lexical anlayzer`. It is not used by `LEX` itself.
+- It has many desirable qualities :
+  - Routine should be as fast as possilbe.
+  - Several characters of `pushback` and `pushahead` must be available.
+  - Both previous and current `lexeme` must be avilable.
+  - Disk access should be efficient.
+
+**_We had already  discussed that input system is highly concerned area in compiler cnstruction. Lets understand How disk is accesed?_**
+
+## UNDERSTANDING HOW DISK IS ACCESED ? 
+
+- OS `operating system` store disk and organize them into sectors.
+**We can say that `sector` is the fundamental unit for disk storage. Disk read is performed in sector size chunks.**
+
+- `Example : `If your disk is 512 byte sector, then you must read 512 at a time. This cause the problem with hardware.
+
+## PROBLEM IS WITH HARDWARE ..😵💭
+
+- Suppose you request a byte, then the `operating sytem` will read entire sector into buffer, then return single byte to you from buffer. This entire porcess is done eyerytime until entire buffer gets exhausted.Then it will read new sector. Now you understand that how it is decreasing efficiency and why we had said that `problem is with hardware`😖.
+
+**Some Other approaches OS perform for disk access**
+
+**CASE 1**
+- Some `operating system` works on `allocation unit`. `Allocation Unit` can be termed as the minimum byte that can be read.
+- OS `operating system` will perform all read operations in terms of `allocation unit`.
+- It means `the number of bytes read from disk at any one time should be the multiple of allocation unit`.
+**_"Larger the buffer, Shorter the read time"_**
+
+**CASE 2**
+- Other OS `operating system` rewards you on block sized transfer. Due to block size transfer it elimiates one level of copying and decreasing read time. It means that `operatign system` will directly transfer buffer.
+
+
+**CASE 3**
+- Some `operating system` will also follow a design with single input buffer and several pointers.
+  - `BUFSIZE :` The actual buffer size.
+  - `MAXLEX :` maximum length of `lexeme`.  **NOTE : Diskread always done in multiple of MAXLEX**
+  - `STARTBUFF :` mark the phyical start of the buffer.
+  - `END :` mark the physical end of the buffer.
+  - `ENDBUFF :` mark the logical end of the buffer.
+  - `NEXT :` points next input character.
+ 
+- Lets visulaize buffer after it is loaded for first time.
+<p align ="center">
+  <image src ="https://github.com/teche74/CompilerCrafting/assets/129526047/5337782e-8d3c-4748-9c8f-5bc18d2e7e15">
+</p>
+
+- Buffer normal state when lexical analyzer has processed several states.
+<p align ="center">
+  <image src ="https://github.com/teche74/CompilerCrafting/assets/129526047/abfb0643-32ac-428f-aadf-78233832093f">
+    
+    <br>
+    
+  **pMark : beginning of previous lexeme**
+  **sMark : beginning of current lexeme**
+  **eMark : end of current lexeme**
+</p>
+
+
+
