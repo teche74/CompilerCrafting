@@ -355,21 +355,16 @@ int ii_flush( int force ){
     shift_amt = left_edge - Start_buf;
     if( shift_amt < MAXLEX){
         if( !force ) return -1;
-
         leftedge = ii_mark_start();
         ii_mark_prev();
         shift_amt = left_edge - Start_buf;
       }
-
       copy_amt = left_edge - Start_buf;
       COPY( Start_buf, left_edge, copy_amt );
-
       if( !ii_fillbuf( Start_buf + copy_amt) )
         ferr("INTERNAL ERROR", ii_flush: Buffer full, can't read.\n");
-
       if( pMark )
         pMark -= shift_amt;
-
       sMark -= shift_amt;
       eMark -= shift_amt;
       Next  -= shift_amt;  
