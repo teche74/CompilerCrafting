@@ -342,38 +342,45 @@ return( *Next++ );
   <image src= "https://github.com/teche74/CompilerCrafting/assets/129526047/04f664c6-847a-4817-8758-db3e36aaf538">
 </p>
 ```c
-int ii_flush( int force ){
-  int copy_amt,shift_amt;
-  char * left_edge;
+  int ii_flush( int force ){
+  
+    int copy_amt,shift_amt;
+    char * left_edge;
 
-  if( NO_MORE_CHARS() ) retur 0;
-  if( Eof_read ) return 1;
+    if( NO_MORE_CHARS() ) retur 0;
+    if( Eof_read ) return 1;
 
-  if(Next >= DANGER || force )
-  {  
-    left_edge = pMark ? min(sMark, pMark) : sMark;
-    shift_amt = left_edge - Start_buf;
-    if( shift_amt < MAXLEX){
-        if( !force ) return -1;
-        leftedge = ii_mark_start();
-        ii_mark_prev();
-        shift_amt = left_edge - Start_buf;
-      }
-      copy_amt = left_edge - Start_buf;
-      COPY( Start_buf, left_edge, copy_amt );
-      if( !ii_fillbuf( Start_buf + copy_amt) )
-        ferr("INTERNAL ERROR", ii_flush: Buffer full, can't read.\n");
-      if( pMark )
-        pMark -= shift_amt;
-      sMark -= shift_amt;
-      eMark -= shift_amt;
-      Next  -= shift_amt;  
-  }
-  return 1;
+    if(Next >= DANGER || force )
+    {  
+      left_edge = pMark ? min(sMark, pMark) : sMark;
+    
+      shift_amt = left_edge - Start_buf;
+    
+      if( shift_amt < MAXLEX){
+          if( !force ) return -1;
+          leftedge = ii_mark_start();
+          ii_mark_prev();
+          shift_amt = left_edge - Start_buf;
+        }
+        copy_amt = left_edge - Start_buf;
+      
+        COPY( Start_buf, left_edge, copy_amt );
+      
+        if( !ii_fillbuf( Start_buf + copy_amt) )
+          ferr("INTERNAL ERROR", ii_flush: Buffer full, can't read.\n");
+      
+        if( pMark )
+          pMark -= shift_amt;
+          sMark -= shift_amt;
+          eMark -= shift_amt;
+          Next  -= shift_amt;  
+    }
+    return 1;
 }
+```
+ ------------------------------------------------------------------------------------------------------
 
-     --------------------------------------------------------------------------------------------------
-
+```c
 PRIVATE int ii_fillbuf( unsigned char *starting_at ){
   register unsigned need, got;
 
