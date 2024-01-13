@@ -277,3 +277,124 @@ int ii_newfile(char * name ){
   return fd;
 }
 ```
+
+### `IMPLEMENT SMALL ACCESS ROUTINES AND MARKER MOVEMENTS`
+
+```c
+PUBLIC char *ii_text        () { return ( sMark         );  }
+PUBLIC int   ii_length      () { return ( eMark - sMark );  }
+PUBLIC int   ii_lineno      () { return ( Lineno       );   }
+PUBLIC char *ii_ptext       () { return ( pMark        );   }
+PUBLIC int   ii_plength     () { return ( pLength      );   }
+PUBLIC int   ii_plineno     () { return ( pLineno      );   }
+
+char *ii_mark_start(){
+  Mline = Lineno;
+  eMark = sMark = Next;
+  return ( sMark );
+}
+
+PUBLIC char *ii_mark_end(){
+  Mline = Lineno;
+  return ( eMark = Next );
+}
+
+PUBLIC char *ii_move_start(){
+  if( sMark >= eMark) return NULL;
+  else return ++sMark;
+}
+
+PUBLIC char *ii_to_mark(){
+  Lineno = Mline;
+  return (Next = eMark);
+}
+
+char *ii_mark_prev()
+{
+  pMark   = sMark;
+  pLineno = Lineno;
+  pLength = eMark - sMark;
+  return ( pMark ); 
+}
+```
+
+
+## `IMPLEMENTING ADVANCE FUNCTION`
+```c
+int ii_advance(){
+  static int been_called = 0;
+  if( !been_called ){
+    Next  = sMark = eMark = END -1;
+    *Next = '/n';
+    --Lineno;
+    --Mline;
+    been_called =1;
+}
+if(  NO_MORE_CHARS() ) return 0;
+if( !Eof_read && ii_flush(0) < 0 ) return -1;
+if( *Next == '\n') Lineno++;
+return( *Next++ );
+}
+```
+
+## `IMPLEMENTING BUFFER FLUSH`
+<p align ="center>
+  <image src= "https://github.com/teche74/CompilerCrafting/assets/129526047/04f664c6-847a-4817-8758-db3e36aaf538">
+</p>
+```c
+int ii_flush( int force ){
+  int copy_amt,shift_amt;
+  char * left_edge;
+
+  if( NO_MORE_CHARS() ) retur 0;
+  if( Eof_read ) return 1;
+
+  if(Next >= DANGER || force )
+  {  
+    left_edge = pMark ? min(sMark, pMark) : sMark;
+    shift_amt = left_edge - Start_buf;
+    if( shift_amt < MAXLEX){
+        if( !force ) return -1;
+
+        leftedge = ii_mark_start();
+        ii_mark_prev();
+        shift_amt = left_edge - Start_buf;
+      }
+
+      copy_amt = left_edge - Start_buf;
+      COPY( Start_buf, left_edge, copy_amt );
+
+      if( !ii_fillbuf( Start_buf + copy_amt) )
+        ferr("INTERNAL ERROR", ii_flush: Buffer full, can't read.\n");
+
+      if( pMark )
+        pMark -= shift_amt;
+
+      sMark -= shift_amt;
+      eMark -= shift_amt;
+      Next  -= shift_amt;  
+  }
+  return 1;
+}
+
+     --------------------------------------------------------------------------------------------------
+
+PRIVATE int ii_fillbuf( unsigned char *starting_at ){
+  register unsigned need, got;
+
+  need = ( (END - starting_at) / MAXLEX ) * MAXLEX;
+
+  D( printf( "Reading %d bytes\n",need ); )
+
+  if( need < 0 ) ferr("INTERNAL ERROR (II_FILLBUF) : bad read-request starting adr. \n");
+  if( need == 0 ) return 0;
+  if( (got = (*Readp) (Inp_file, starting_at, need)) == -1 )
+    ferr("Can't read iinput file\n");
+
+  End_buf = starting_at + got;
+
+  if( got < need ) Eof_read = 1;
+
+  return got;
+}
+```
