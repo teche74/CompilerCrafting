@@ -393,9 +393,12 @@ return( *Next++ );
   `#define NO_MORE_CHARS() (Eof_read && next >= End_buff)`
 
 ## `IMPLEMENTING BUFFER FLUSH`
+
+
 <p align ="center>
-  <image src= "https://github.com/teche74/CompilerCrafting/assets/129526047/04f664c6-847a-4817-8758-db3e36aaf538">
+  <image src= "https://github.com/teche74/CompilerCrafting/assets/129526047/01e37d65-1874-4dd4-aa4d-739340d35deb">
 </p>
+
 
 
 ```c
