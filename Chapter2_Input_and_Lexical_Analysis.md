@@ -395,7 +395,7 @@ return( *Next++ );
 ## `IMPLEMENTING BUFFER FLUSH`
 
 
-<p align ="center>
+<p align ="center">
   <image src= "https://github.com/teche74/CompilerCrafting/assets/129526047/01e37d65-1874-4dd4-aa4d-739340d35deb">
 </p>
 
