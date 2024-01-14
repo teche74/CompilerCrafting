@@ -278,6 +278,28 @@ int ii_newfile(char * name ){
 }
 ```
 
+`ii_oo function` is used to change the low-level input functions that are used to open the file and fill the buffer. It is used only when you directly getting input fro hardware. This way we can use a `LEX` generated lexical analyzerin an unusual situtation without having to rewrite the input sysytem.
+
+`ii_newfile()` is a normal mechanism for opening a new input file. It takes file name as argument and return file descripter. ( -1 if file ot get opened ) It actualy does'nt read the first buffer .It only setup various pointers so that buffer is loaded propeny when first character is requested. This way a program will neevr call `ii_new_file()`.
+
+#### PROBLEM WITH THIS APPROACH  
+
+- You must read atleast 1 character before you can look ahead in input.
+
+> **SOLUTION** : If you need to `lookahead` befoer `advance` we use `ii_advance()` and `ii_pushback(1)`.  
+
+`ii_advance` : Read first buffer full of input.
+`ii_pushback` : Put back first chracter.
+
+- Default input stream is standard input `used if ii_newfile never called`. We can reassign the input to standard buffer input by calling : `ii_newfile( NULL )`.
+
+`open( ) `uses the O_BINARY input mode in `MS-DOS` system. A CR-LF `carriage-return, linefeed` pair is not translated into single **\n** when binary mode input is active.
+  
+  - Most `LEX` appilcations trat LF and CR as whitespace. It prevents them for wasting time on translation. It amy cause problem in case if explicit `\n` is given.
+
+`NOTE : ` `ii_new_file()` not reads the input buffer.It initializes various pointers to the end of the buffer. The input system reads input in same way as `NEXT pointer crosses the DANGER`. It shifts buffer tail to left.
+
+
 ### `IMPLEMENT SMALL ACCESS ROUTINES AND MARKER MOVEMENTS`
 
 ```c
@@ -318,6 +340,34 @@ char *ii_mark_prev()
 }
 ```
 
+- We introduced some access functions to limit extrnal access of global variable. Linker assumes the two global variable with same name as same variable.
+
+- Suppose if you had done careless declaration of two variables with same name as same variable.One of them will seems to get magically change its value when a subroutine access the other one. To avoid this problem we use `static` ( limiting scope to the current file ).
+
+- It is necessary for external subroutine to acess these variable and to do this in safest way is to acess them with small routines.These subroutine are used for maintainence reason only.
+
+`NOTE :` **_Two Subroutines with same name must cause error but two variable with same name that are globally define does'nt cause any error as they are silently merged._**
+
+
+`ii_text : ` pointer to current lexeme.
+`ii_length : ` length of current lexeme.
+`ii_lineno : ` line no for last character in lexeme.
+
+`ii_ptext : ` pointer to previous lexeme.
+`ii_plength :` length of previous lexeme.
+`ii_plineno :` line no for last character in previous lexeme.
+
+
+`ii_mark_start() :` routine moves the `sMark` to the current input position. It also make's sure that the end of lexeme `eMark` is not to the left of start mark.
+
+`ii_mark_end() :`  routine moves the `eMark` to the curren input position. It also make's sure that the end of lexeme `sMark` is not to the right of end mark. It also saves current line no in Mline.
+
+`ii_move_start() :` It moves the statr marker one space to the right.It return new start marker on success.
+
+`ii_to_mark() :` restores input pointer to last end mark.
+
+`ii_mark_prev() :` modfiy the previous lexeme markerto reference the same lexeme as current lexeme marker.    
+
 
 ## `IMPLEMENTING ADVANCE FUNCTION`
 ```c
@@ -336,11 +386,18 @@ if( *Next == '\n') Lineno++;
 return( *Next++ );
 }
 ```
+`ii_advance() :` It past the character in input system .
+
+`NO_MORE_CHARS :` It is used to detect end of file.
+
+  `#define NO_MORE_CHARS() (Eof_read && next >= End_buff)`
 
 ## `IMPLEMENTING BUFFER FLUSH`
 <p align ="center>
   <image src= "https://github.com/teche74/CompilerCrafting/assets/129526047/04f664c6-847a-4817-8758-db3e36aaf538">
 </p>
+
+
 ```c
   int ii_flush( int force ){
   
@@ -377,10 +434,8 @@ return( *Next++ );
     }
     return 1;
 }
-```
- ------------------------------------------------------------------------------------------------------
+                                   /*   ------------------------------------------------------------------------------------------------------------------------------- */
 
-```c
 PRIVATE int ii_fillbuf( unsigned char *starting_at ){
   register unsigned need, got;
 
@@ -400,3 +455,6 @@ PRIVATE int ii_fillbuf( unsigned char *starting_at ){
   return got;
 }
 ```
+
+`ii_flush() :` it flushes the buffer if necessary.
+
