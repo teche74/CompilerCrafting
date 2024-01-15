@@ -461,3 +461,94 @@ PRIVATE int ii_fillbuf( unsigned char *starting_at ){
 
 `ii_flush() :` it flushes the buffer if necessary.
 
+### **IMPLEMENTING IILOOK AND IIPUSHBACK**
+
+```c
+int ii_look( int n ){
+  uchar *p;
+  p = Next + (n-1);
+
+  if( Eof_read && p >= End_Buf) return EOF;
+
+  return ( p < Start_buf || p >= End_buf ) ? 0 : *p ;
+}
+
+int ii_push_back( int n ){
+  while( --n >= 0  && Next > sMark){
+
+      if(*--Next == '\n'  || !*Next ) --Lineno;
+
+  }
+
+      if( Next < eMark ){
+          eMark = Next;
+          Mline = Lineno;
+      }
+
+  return (Next > sMark);
+
+}
+```
+`ii_look` returns character at the offset from the current character that's specified in the argument. `ii_look(0)` returns character at that was return by most recent `ii_advance()` call.
+
+`ii_pushback` pushes back the nth most recent read chracters.
+
+
+`NOTE :` It's ocassionaly useful to have a terminator on the string.
+
+### IMPLEMENTING SYSTEM SUPPORT FOR '\0'- TERMINATED STRING
+
+```c
+void ii_term(){
+  Termchar = *Next;
+  *Next = '\0;
+}
+
+void ii_unterm(){
+  if( Termchar ){
+      *Next = Termchar;
+      Termchar =0;
+  }
+}
+
+int ii_input(){
+  int rval;
+  if( Termchar ){
+      ii_unterm();
+      rval = ii_advance();
+      ii_mark_end();
+      ii_term();
+  }
+  else{
+      rval = ii_advance();
+      ii_mark_end();
+  }
+  return rval;
+}
+
+void ii_input( c ){
+    if( Termchar ){
+        ii_unterm();
+        if( ii_pushback(1) ){
+              *Next = c;
+        }
+        ii_term();
+    }
+    else{
+        if( ii_pushback(1) ){
+            *Next = c;
+        } 
+    }
+}
+
+int ii_lookahead( n ){
+  return ( n==1 && Termchar) ? Termchar : ii_look(n);
+}
+
+int ii_flushbuf(){
+    if( Termchar ){
+        ii_unterm();
+    }
+    return ii_flush(1);
+}
+```
