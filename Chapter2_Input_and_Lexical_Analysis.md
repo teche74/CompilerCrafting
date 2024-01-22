@@ -690,9 +690,60 @@ A `regular expression` followed by a  **_*_** matches that expression repeated z
 
 **REGULAR EXPRESSION OPERATOR PRECENDENCE**
 <p align = "center">
-    <image src = 
-
+    <image src = "https://github.com/teche74/CompilerCrafting/assets/129526047/c933b6af-cc2e-49fa-b891-1e85d1356d48">
 </p>
 
-![image](https://github.com/teche74/CompilerCrafting/assets/129526047/c933b6af-cc2e-49fa-b891-1e85d1356d48)
+**REGULAR DEFINATIONS**
+- Regular definations build up a language specification using cobination of regular expression operator and production like specifiers.
+  - keyword : long/int/double/while....
+  - digit : 0/1/2/3/4....
+  - digit_sequence : digit+
+  - sign : +/-
+  - exponent_part : e_sign ?  digit_sequence | E_sign ? digit_sequence.  
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+#### FINTIE AUTOMATA  
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+- A recognizer program, such as a lexical anlayzer ,reach a string as input and output "YES" if the string is a sentence in a lanaguage and "NO" if it's not.
+
+- A extra layer is usually added around the recognizer itself so we can do more than "YES" and "NO".
+
+- So basically first layer is used to recognize a string, while second layer perform an action associated  with that string.
+
+- We translate regular expression that represent the lexemes into finite automation/ finite state machine.
+
+-  `FSM` consist of follwing :
+  - A finite set of states.
+  - A set of transistions from 1 state to another.
+  - A special start state.
+  - A set of final or accepting states.
+
+
+`Example of daigram that recognizes only 'he' , 'she', 'his' , 'him' and 'hers'`.
+<p align = "center">
+    <image src = "https://github.com/teche74/CompilerCrafting/assets/129526047/866ee2bd-4360-4d90-9b74-3c1e8d7fb091">
+</p>
+
+- State machine can be modelled using two datat structure.
+
+- A single variable holding current state machine.
+- A 2D array for computing next state.
+  - One axis is indexed by the input charcter.
+  - Other is indexed by current state and array holds the next state.
+
+- We can represent previous machine using two arrays.
+  - One array is used to hold state transitions.
+  - Another array is used to tell whether a state is accepting or not.
+  - Next state is determined from current state and input character.
+```c
+ next_state = Transistion_table[input_character][current_state];
+ if( accepting[next_state] == 1 ){
+    do_an_accepting_action(next_state);
+ }
+```
+
+- Input character usulaaly called `lookahead character`. In this way we have implemented `DFA` as we can determined next state by using current state and current lookahaead charcter.
+
 
