@@ -552,3 +552,147 @@ int ii_flushbuf(){
     return ii_flush(1);
 }
 ```
+`ii_advance()` : used to past characters given by buffer_flush (return next character).
+`NO_MORE_CHARS` : used to detect end of file.
+`ii_flush()` : it flushes the buffer if neccessary.
+`ii-look()` : return charcaters at offset fron the current character.
+
+<br>
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+### LEXICAL ANALYSIS
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+- After developing set of input routines, we need to apply it on lexical-analysis application.
+
+### 2 approaches for lexical-analysis :
+
+- We can `hard code the analyzer` recognizing lexemes with nested if-else,switch or statements. If lexemes are not too long, one effective approach to use series of lookup table to recognize token.
+  - Advantages :
+    - It tends to be very efficient.
+  - Disadvantage :
+    - They are difficult to maintain.     
+
+
+**_LOOKUP TABLE FOR CHARACTER RECOGNITION_**
+
+```c
+#define LESS_THAN 1
+#define GREATER_THAN 2
+#define EQUAL 3
+#define NOT 4
+#define LESS_THAN_OR_EQUAL 5
+#define NOT_EQUAL 6
+#define ASSIGN 7
+#define ERROR -1
+#define CONTINUE 0
+#define SIZE_OF_CHARACTER_SET 128
+
+char first[SIZE_OF_CHARACTER_SET];
+char second[SIZE_OF_CHARACTER_SET];
+
+int s,f;
+
+memset(first,-1,SIZE_OF_CHARACTER_SET);
+memset(second,-1,SIZE_OF_CHARACTER_SET);
+
+first['>'] = GREATER_THAN;
+first['<'] = LESS_THAN;
+first['!'] = NOT;
+first['='] = ASSIGN;
+second['='] = EQUAL;
+
+c = get_char();
+
+if( f == first[c] == ERROR) return ERROR;
+
+if( s== second[c] == ERROR){
+    ungetchar();
+    return f;
+}
+else{
+    if(s == EQUAL){
+        switch(f){
+            case ASSIGN: return EQUAL;
+            case LESS_THAN: return LESS_THAN_OR_EQUAL;
+            case GREATER_THAN : return GREATER_THAN;
+            case NOT : return NOT_EQUAL;
+        }
+        return ERROR;
+    }
+}
+```
+
+
+### LANGUAGES
+
+`Alphabet` : Finite set of symbols.
+  - example : set of ASCII , set of binary {'0','1'}.
+
+`String` : Sequence of alphabetical symbols.
+  - NOTE : empty string must be given by ε.
+
+
+**_Difference between ε, null and empty string_**
+
+`ε string` : when an empty string is given.
+`null string` : string with absence of valid refernce.
+`empty string` : character sequence with ero length.
+
+
+`Language` : set of strings that can be formed by using alphabets.
+
+`Grammer` : Ordering of strings within sentence is defined by collection of syntatic rules called a grammer.
+
+`Kleen Closure ` : **( * )** If `L` is a language , then `kleen closure` of `L` is `L` repeated zero or more times. It is represented by `L*`.
+
+`Positive Closure` : **( L+ )** `Positive Closure of L` is L repeated one or more times.
+
+<br>
+
+-----------------------------------------------------------------------------------------------------------------------------------
+### **Regular Expression**
+-----------------------------------------------------------------------------------------------------------------------------------
+
+- Any well formed formulas over union, concatenation and kleen closure. We can match complex sequence by adding special called meta characters.
+ 
+- Followinw are some rules used by lex to form a regular expression :
+   - A single character that is not a etacharacter is a regular expression.
+   - Two regular expressions concatenated forms a regular expression.
+   - A period `.` matches any chracter except newline.
+   - A dollar sign `$` anchor the pattern to end of line.
+   - `[...][^...]` matches any of the characters embedded in the bracket.
+   - `Negative charcter class` **^** It means any character except the one specified.
+   - Only seven characters have special meaning inside a character class.
+      - **{** : start of macro name.
+      - **}** : end of macro name.
+      - **[** : start of character class.
+      - **{** : end of character class.
+      - **-** : range of charcaters.
+      - **^** : indicates negative character class. It doesnt match any newline character.
+      - **" "** : takes away special meaning from charcter upto next quote mark.
+      - **\** : takes away special meaning of next charcater.
+    
+
+A `regular expression` followed by a  **_*_** matches that expression repeated zero or many times.
+
+`a+` : matches one or more repetations.
+`a?` : matches zero or one repetation.
+
+- Two `regular expression` seperated by vertical bar `|` recognizes a match of first expression **OR** a match of second.
+- `Paranthesis` are used for grouping.
+
+#### **LIMITATIONS OF REGULAR EXPRESSION**
+
+- It can only be used to define sequence of character.
+- It cannot do things like recognizing any number of properly nested paranthesis (Something that can be reconized grammatically). It is also the reason why parser and anlayzer are twoo seperate modules.
+- Lexical anlayzer is responsible for recognizing simple sequence of characters and parser recognizes more complex combinations.
+
+**REGULAR EXPRESSION OPERATOR PRECENDENCE**
+<p align = "center">
+    <image src = 
+
+</p>
+
+![image](https://github.com/teche74/CompilerCrafting/assets/129526047/c933b6af-cc2e-49fa-b891-1e85d1356d48)
+
