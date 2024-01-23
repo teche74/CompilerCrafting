@@ -746,4 +746,101 @@ A `regular expression` followed by a  **_*_** matches that expression repeated z
 
 - Input character usulaaly called `lookahead character`. In this way we have implemented `DFA` as we can determined next state by using current state and current lookahaead charcter.
 
+**_DFA is a state machine in which all outgoing edges are labeled with an input character._**
 
+- While we can also create `NFA` which has no limitations on the number and type of edges. Unfortunately, `DFA's` are difficult to construct directly from regular expressions while `NFA's` arre easy to construct.
+- `NFA's'` are more prefered because it is easier to represent in  computer program . `NFA's` can be an akward data
+structure to use. It can have more states than equivalent DFA
+
+
+**NFA model consist of :**
+- A set of States **S**.
+- A special state **S** called `start state`. Machine is initially at this state.
+- A set of states inS called accepting states, entry into which denotes recognition of a string. Some sort of action is usually associated with each of the accepting states.
+- A set of input symbols (an input alphabet). 
+
+
+**DFA is an NFA with following restrictions :**
+-  No state can have an outgoing ε transition .
+-  There may be no more than one outgoing transition from any state that is labeled with the same character.
+
+<br>
+
+------------------------------------------------------------------------------------------------------------
+### STATE MACHINE DRIVEN LEXICAL ANALYZERS
+------------------------------------------------------------------------------------------------------------
+
+- Let's understand how state machine are used for lexical-anlaysis y looking at high level.
+
+- A simple table-driven lexical-analyzer that recognizes decimal and floating-point constants.
+
+```c
+[0-9]+                                                         return ICON;
+([0-9]+1 [0-9]*\. [0-9]+1 [0-9]+\. [0-9]*) (e[0-9]+)?          return FCON; 
+```
+
+
+- This code is executed by the lexical analyzer when an input string that matches that expression is recognized.
+  - The first expression recognizes a simple sequence of one or more digits.
+  - The second expression recognizes a floating-point constant. The `( e [ 0- 9] +) ? ` at the end of the second regular expression is the optional engineering notation at the end of the number.
+
+**We can write it in more simplified manner**
+```c
+( [0-9] + [0-9]*\. [0-9]+ [0-9] +\. [0-9] *) 
+```
+<p align = "center">
+    <image src = "https://github.com/teche74/CompilerCrafting/assets/129526047/f371e96c-5935-4b87-86cc-b574556810a1">
+</p>
+
+- LEX uses a state-machine approach to recognize regular expressions, and a DFA that recognizes the previous expressions as shown above.
+-  The next state is computed using that array with: `next_state = array[ current_state ] [ input ] `.
+-  A dash indicates a failure transition (no legal outgoing transition on the current input character from the current state). This array is typically called a transition matrix or transition table. 
+
+> The state machine itself and the driver program that uses that machine are distinct from one another. Two algorithms are commonly used in lexical analysis applications, and the same state machine (transition matrix) is used by both algorithms. A greedy algorithm is used by LEX (because that's what's required by most programming-language specifications). This algorithm finds the longest possible sequence of input characters that can form a token. The algorithm can be stated informally as follows: If there's an outgoing transition from the current state, take it. If the new state is an accepting state, remember it along with the input position. If there's no outgoing transition (the table has a a dash in it), do the action associated with the most-recently seen accepting state. If there is no such state, then an error has occurred (IJX just ignores the partially-collected lexeme and starts over from State 0, in this situation).
+
+<p align = "center">
+    <image src = "https://github.com/teche74/CompilerCrafting/assets/129526047/74d80642-7fbc-432d-8986-d1efedc6c504">
+</p>
+
+<br>
+
+#### ALGORITHM USED BY LEX STATE-MACHINE DRIVER
+
+```c
+current_state = 0;
+previously_seen_accepting_state = none_seen;
+
+if( lookahead character is end-of-input )
+  return 0;
+
+while( lookahead character is not end-of-input )
+{
+  if( there is a transition from the current state on the current lookahead character)
+  {
+    current_state = that state;
+    advance the input;
+    if( the current state is an accepting state )
+    {
+        remember the current position in the input
+        and the action associated with the current state;
+    }
+  }
+else{
+  if( no accepting state has been seen )
+  {
+      There's an error:
+          Discard the current lexeme and input character.
+          Current_state = 0;
+  }
+  else
+  {
+    back up the input to the position it was in when it saw the last accepting state
+    perform the action associated with that accepting state;
+  }
+ }
+}
+```
+- *Note that the greedy algorithm does have its disadvantages: It's tricky to implement and tends to be relatively slow. It can also cause the recognizer to behave in sometimes unexpected ways. (The LEX input expression ( \n 1 . ) * tries to absorb the entire input file, for example.) It is nonetheless the best (and sometimes the only) choice in most real
+lexical-analysis applications.*
+
+- The second type of algorithm (the nongreedy algorithm) is much simpler. Here, the shortest possible input string is recognized, and the machine just accepts as soon as an accepting state is entered. A nongreedy recognizer program is much simpler to implement than a greedy one, and is much faster as well. Nonetheless, this algorithm can be used only when all the accepting states in the machine are terminal nodes-when they have no outgoing transitions.
